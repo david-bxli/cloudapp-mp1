@@ -3,6 +3,7 @@ import java.lang.reflect.Array;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.io.*;
 
 public class MP1 {
     Random generator;
@@ -52,8 +53,59 @@ public class MP1 {
     public String[] process() throws Exception {
         String[] ret = new String[20];
        
-        //TODO
+		FileInputStream fstream = new FileInputStream(this.inputFileName);
+		BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
+		Integer[] needesIndexes = getIndexes();
+		
+		List<String> stopList = Arrays.asList(stopWordsArray);
+				
+		HashMap<String, Integer> words = new HashMap<String, Integer>();
+		
+		Integer currentLine = 0;
+		String strLine;
+		while ((strLine = br.readLine()) != null)   {
+			if(!Arrays.asList(needesIndexes).contains(currentLine)){
+				currentLine ++;
+				continue;
+			}
+			currentLine ++;
+			
+			StringTokenizer tokens = new StringTokenizer(strLine, this.delimiters);
+			while(tokens.hasMoreTokens()){
+				String word = tokens.nextToken().toLowerCase().trim();
+				if(stopList.contains(word)){
+					continue;
+				}
+				
+				if(words.containsKey(word)){
+					words.put(word, words.get(word) + 1);
+				}
+				else{
+					words.put(word, 1);
+				}
+				
+			}
+		}
 
+		br.close();
+		
+		words=sortByValues(words);
+		
+		int rectIndex = 0;
+	    Iterator it = words.entrySet().iterator();
+	    while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry)it.next();
+			//System.out.println((String)pair.getKey());
+			if(rectIndex<20){
+				ret[rectIndex]=(String)pair.getKey();
+				System.out.println((String)pair.getKey()+(Integer)pair.getValue());
+				rectIndex++;	
+			}else{
+				continue;
+			}
+			it.remove();
+		}
+		
         return ret;
     }
 
@@ -71,4 +123,35 @@ public class MP1 {
             }
         }
     }
+	
+	private static HashMap sortByValues(HashMap map) { 
+	       List list = new LinkedList(map.entrySet());
+	       // Defined Custom Comparator here
+	       Collections.sort(list, new Comparator() {
+	            public int compare(Object o1, Object o2) {
+					Integer value1=(Integer)((Map.Entry) (o1)).getValue();
+					Integer value2=(Integer)((Map.Entry) (o2)).getValue();
+					String key1=(String)((Map.Entry) (o1)).getKey();
+					String key2=(String)((Map.Entry) (o2)).getKey();
+					if(value1 == value2){
+						int res = String.CASE_INSENSITIVE_ORDER.compare(key1, key2);
+						return (res != 0) ? res : key1.compareTo(key2);
+					}
+					else{
+						return value2.compareTo(value1);
+					}
+	               //return ((Comparable) ((Map.Entry) (o1)).getValue())
+	                 // .compareTo(((Map.Entry) (o2)).getValue());
+	            }
+	       });
+
+	       // Here I am copying the sorted list in HashMap
+	       // using LinkedHashMap to preserve the insertion order
+	       HashMap sortedHashMap = new LinkedHashMap();
+	       for (Iterator it = list.iterator(); it.hasNext();) {
+	              Map.Entry entry = (Map.Entry) it.next();
+	              sortedHashMap.put(entry.getKey(), entry.getValue());
+	       } 
+	       return sortedHashMap;
+	  }
 }
