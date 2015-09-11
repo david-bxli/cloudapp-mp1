@@ -4,6 +4,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.io.*;
+import java.nio.file.*;
+import java.nio.charset.*;
 
 public class MP1 {
     Random generator;
@@ -53,22 +55,16 @@ public class MP1 {
     public String[] process() throws Exception {
         String[] ret = new String[20];
        
-		FileInputStream fstream = new FileInputStream(this.inputFileName);
-		BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
 		Integer[] needesIndexes = getIndexes();
 		
 		List<String> stopList = Arrays.asList(stopWordsArray);
 				
 		HashMap<String, Integer> words = new HashMap<String, Integer>();
 		
-		Integer currentLine = 0;
-		String strLine;
-		while ((strLine = br.readLine()) != null)   {
-			if(!Arrays.asList(needesIndexes).contains(currentLine)){
-				currentLine ++;
-				continue;
-			}
-			currentLine ++;
+		List<String> lines = Files.readAllLines(Paths.get(this.inputFileName), Charset.defaultCharset());
+		for(int i=0;i<needesIndexes.length;i++){
+			
+			String strLine = lines.get(needesIndexes[i]);
 			
 			StringTokenizer tokens = new StringTokenizer(strLine, this.delimiters);
 			while(tokens.hasMoreTokens()){
@@ -86,8 +82,6 @@ public class MP1 {
 				
 			}
 		}
-
-		br.close();
 		
 		words=sortByValues(words);
 		
@@ -95,10 +89,8 @@ public class MP1 {
 	    Iterator it = words.entrySet().iterator();
 	    while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry)it.next();
-			//System.out.println((String)pair.getKey());
 			if(rectIndex<20){
 				ret[rectIndex]=(String)pair.getKey();
-				System.out.println((String)pair.getKey()+(Integer)pair.getValue());
 				rectIndex++;	
 			}else{
 				continue;
@@ -126,7 +118,7 @@ public class MP1 {
 	
 	private static HashMap sortByValues(HashMap map) { 
 	       List list = new LinkedList(map.entrySet());
-	       // Defined Custom Comparator here
+
 	       Collections.sort(list, new Comparator() {
 	            public int compare(Object o1, Object o2) {
 					Integer value1=(Integer)((Map.Entry) (o1)).getValue();
@@ -140,13 +132,9 @@ public class MP1 {
 					else{
 						return value2.compareTo(value1);
 					}
-	               //return ((Comparable) ((Map.Entry) (o1)).getValue())
-	                 // .compareTo(((Map.Entry) (o2)).getValue());
 	            }
 	       });
 
-	       // Here I am copying the sorted list in HashMap
-	       // using LinkedHashMap to preserve the insertion order
 	       HashMap sortedHashMap = new LinkedHashMap();
 	       for (Iterator it = list.iterator(); it.hasNext();) {
 	              Map.Entry entry = (Map.Entry) it.next();
